@@ -87,85 +87,33 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
                 // Build ingredients list
                 $ingredients_list = [];
 
-                // --- 1️⃣ Check custom meta field (if exists) ---
-                $meta_ing = get_post_meta($product->get_id(), 'ingredients', true);
-                if ($meta_ing) {
-                    $pairs = preg_split('/\|/', $meta_ing);
-                    foreach ($pairs as $p) {
-                        $p = trim($p);
-                        if (strpos($p, '=') !== false) {
-                            list($name_k, $qty_k) = array_map('trim', explode('=', $p, 2));
-                            $ingredients_list[] = sprintf('%s - %s', esc_html($qty_k), esc_html($name_k));
-                        } else {
-                            $ingredients_list[] = esc_html($p);
-                        }
-                    }
-                }
+                // --- Check product attributes ---
+                $attributes = $product->get_attributes();
 
-                // --- 2️⃣ Check product attributes ---
-                if (empty($ingredients_list)) {
-                    $attributes = $product->get_attributes();
+                if (!empty($attributes)) {
+                    foreach ($attributes as $attr_key => $attr_obj) {
 
-                    if (!empty($attributes)) {
-                        // Optional: remove debug print
-                        // echo "<pre>" . print_r($attributes, true) . "</pre>";
+                        // Get attribute name
+                        $attr_name = is_object($attr_obj) ? $attr_obj->get_name() : $attr_key;
 
-                        // Optional mapping for your custom attribute names
-                        $name_map = [
-                            'orirign' => 'Originel',
-                            'pirec'   => 'Pêche',
-                            'enrobage_chocolat' => 'Enrobage Chocolat',
-                        ];
-
-                        foreach ($attributes as $attr_key => $attr_obj) {
-                            // Check if this looks like an ingredient
-                            if (
-                                stripos($attr_key, 'ingredient') !== false ||
-                                stripos($attr_key, 'orirign') !== false ||
-                                stripos($attr_key, 'pirec') !== false ||
-                                (is_object($attr_obj) && stripos($attr_obj->get_name(), 'ingredient') !== false)
-                            ) {
-                                // taxonomy attribute (like pa_ingredients)
-                                if (method_exists($attr_obj, 'is_taxonomy') && $attr_obj->is_taxonomy()) {
-                                    $taxonomy = $attr_obj->get_name();
-                                    $terms = wc_get_product_terms($product->get_id(), $taxonomy, ['fields' => 'names']);
-                                    foreach ($terms as $t) {
-                                        $ingredients_list[] = '1 - ' . esc_html($t);
-                                    }
-                                } else {
-                                    // custom attribute
-                                    $opts = (method_exists($attr_obj, 'get_options')) ? $attr_obj->get_options() : [];
-                                    foreach ($opts as $opt) {
-                                        $label = isset($name_map[$attr_key]) ? $name_map[$attr_key] : $attr_key;
-                                        // If option is numeric or short, assume it's quantity
-                                        if (is_numeric($opt) || strlen($opt) <= 2) {
-                                            $ingredients_list[] = sprintf('%s - %s', esc_html($opt), esc_html($label));
-                                        } else {
-                                            // Otherwise parse Name=Value pattern if possible
-                                            if (strpos($opt, '=') !== false) {
-                                                list($name_k, $qty_k) = array_map('trim', explode('=', $opt, 2));
-                                                $ingredients_list[] = sprintf('%s - %s', esc_html($qty_k), esc_html($name_k));
-                                            } else {
-                                                $ingredients_list[] = '1 - ' . esc_html($opt);
-                                            }
-                                        }
-                                    }
-                                }
+                        // Handle taxonomy attributes (like pa_color)
+                        if (method_exists($attr_obj, 'is_taxonomy') && $attr_obj->is_taxonomy()) {
+                            $taxonomy = $attr_obj->get_name();
+                            $terms = wc_get_product_terms($product->get_id(), $taxonomy, ['fields' => 'names']);
+                            foreach ($terms as $term_name) {
+                                $ingredients_list[] = sprintf('%s - %s', esc_html($attr_name), esc_html($term_name));
+                            }
+                        } 
+                        // Handle custom attributes
+                        else {
+                            $options = (method_exists($attr_obj, 'get_options')) ? $attr_obj->get_options() : [];
+                            foreach ($options as $opt) {
+                                $ingredients_list[] = sprintf('%s - %s', esc_html($attr_name), esc_html($opt));
                             }
                         }
                     }
                 }
 
-                // --- 3️⃣ Fallback: variation meta ---
-                if (empty($ingredients_list) && !empty($cart_item['variation'])) {
-                    foreach ($cart_item['variation'] as $k => $v) {
-                        if (stripos($k, 'ingredient') !== false || stripos($v, 'ingredient') !== false) {
-                            $ingredients_list[] = esc_html($v);
-                        }
-                    }
-                }
-
-                // --- 🔹 Render item ---
                 ?>
                 <div class="ecpw-item">
                     <div class="ecpw-left">
