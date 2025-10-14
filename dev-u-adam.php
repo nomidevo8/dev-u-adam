@@ -23,14 +23,17 @@ add_action( 'plugins_loaded', function() {
             // Define the widget class inline
      
             require_once __DIR__ . '/widgets/dev-cart-products.php';
-
+            require_once __DIR__ . '/widgets/dev-category-products.php';
+            require_once __DIR__ . '/widgets/dev-flavor-products.php';
             // Register widget instance
             $widgets_manager->register( new \ECPW\Cart_Products_Widget() );
+            $widgets_manager->register( new \ECPW\Dev_Category_Products_Widget() );
+            $widgets_manager->register( new \ECPW\Dev_Flavor_Products_Widget() );
         }
     } );
     // Enqueue styles
     add_action( 'wp_enqueue_scripts', function() {
-        wp_register_style( 'ecpw-styles', plugins_url( 'assets/ecpw-styles.css', __FILE__ ) );
+        wp_register_style( 'ecpw-styles', plugins_url( 'assets/css/ecpw-styles.css', __FILE__ ) );
         wp_enqueue_style( 'ecpw-styles' );
     } );
 
@@ -52,5 +55,59 @@ add_action( 'plugins_loaded', function() {
     @media(max-width:600px){.ecpw-item{flex-direction:column}.ecpw-right{align-items:flex-end}}
     </style>\n";
         } );
+
+
+        require_once __DIR__ . '/includes/woocommerce/init.php';
+
+		// AJAX endpoint to add products (simple and variable) to cart
+		add_action('wp_ajax_ecpw_add_to_cart', function(){
+			if ( ! function_exists('WC') ) {
+				wp_send_json_error(['message' => 'WooCommerce not loaded']);
+			}
+			$product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+			$quantity   = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
+			if (!$product_id) {
+				wp_send_json_error(['message' => 'Missing product_id']);
+			}
+			$product = wc_get_product($product_id);
+			if (! $product || 'publish' !== $product->get_status()) {
+				wp_send_json_error(['message' => 'Invalid product']);
+			}
+			$attributes = [];
+			foreach ($_POST as $key => $value) {
+				if (strpos($key, 'attribute_') === 0) {
+					$attributes[$key] = wc_clean(wp_unslash($value));
+				}
+			}
+
+			$variation_id = 0;
+			$variation_attributes = [];
+			if ($product->is_type('variable')) {
+				$available = $product->get_available_variations();
+				$found = 0;
+				foreach ($available as $variation) {
+					$match = true;
+					foreach ($variation['attributes'] as $attr_key => $attr_val) {
+						$posted_val = isset($attributes[$attr_key]) ? $attributes[$attr_key] : '';
+						if ($attr_val !== '' && $posted_val !== $attr_val) { $match = false; break; }
+					}
+					if ($match) { $variation_id = $variation['variation_id']; $variation_attributes = $variation['attributes']; $found = 1; break; }
+				}
+				if (! $found) {
+					wp_send_json_error(['message' => __('Please choose product options.', 'woocommerce')]);
+				}
+			}
+
+			$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes, []);
+			if (! $added) {
+				wp_send_json_error(['message' => __('Could not add to cart', 'woocommerce')]);
+			}
+
+			// Return updated fragments like Woo AJAX add to cart
+			WC_AJAX::get_refreshed_fragments();
+			wp_die();
+		});
+		add_action('wp_ajax_nopriv_ecpw_add_to_cart', function(){ do_action('wp_ajax_ecpw_add_to_cart'); });
+
 
 } );

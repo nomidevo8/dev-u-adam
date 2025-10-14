@@ -84,35 +84,16 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
                 $image = $product->get_image('woocommerce_thumbnail');
                 $name = $product->get_name();
 
-                // Build ingredients list
-                $ingredients_list = [];
-
-                // --- Check product attributes ---
-                $attributes = $product->get_attributes();
-
-                if (!empty($attributes)) {
-                    foreach ($attributes as $attr_key => $attr_obj) {
-
-                        // Get attribute name
-                        $attr_name = is_object($attr_obj) ? $attr_obj->get_name() : $attr_key;
-
-                        // Handle taxonomy attributes (like pa_color)
-                        if (method_exists($attr_obj, 'is_taxonomy') && $attr_obj->is_taxonomy()) {
-                            $taxonomy = $attr_obj->get_name();
-                            $terms = wc_get_product_terms($product->get_id(), $taxonomy, ['fields' => 'names']);
-                            foreach ($terms as $term_name) {
-                                $ingredients_list[] = sprintf('%s - %s', esc_html($attr_name), esc_html($term_name));
-                            }
-                        } 
-                        // Handle custom attributes
-                        else {
-                            $options = (method_exists($attr_obj, 'get_options')) ? $attr_obj->get_options() : [];
-                            foreach ($options as $opt) {
-                                $ingredients_list[] = sprintf('%s - %s', esc_html($attr_name), esc_html($opt));
-                            }
-                        }
-                    }
-                }
+				// Build list with selected flavors only (same list layout)
+				$ingredients_list = [];
+				if (!empty($cart_item['dev_chouchou_flavors']) && is_array($cart_item['dev_chouchou_flavors'])) {
+					foreach ($cart_item['dev_chouchou_flavors'] as $fname => $qty) {
+						$qty = intval($qty);
+						if ($qty > 0) {
+							$ingredients_list[] = sprintf(' %d - %s ', $qty, esc_html($fname));
+						}
+					}
+				}
 
                 ?>
                 <div class="ecpw-item">
