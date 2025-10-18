@@ -84,9 +84,10 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
                 $flavors_raw = $product->get_meta('_dev_chouchou_flavors_data');
                 $box = new \Dev_Chouchou_Box();
                 $flavors = $box->dev_decode_flavors($flavors_raw);
+                $max_flavors = intval($product->get_meta('_dev_max_flavors_allowed')) ?: 1;
                 if (empty($flavors)) continue;
 
-                echo '<div class="ecpw-product-box">';
+                echo '<div class="ecpw-product-box" data-max-flavors="' . esc_attr($max_flavors) . '" data-product-id="' . esc_attr($product->get_id()) . '">';
                     echo '<div class="ecpw-product-image">';
                         if ($image) echo '<img src="'.esc_url($image).'" alt="'.esc_attr($product->get_name()).'" />';
                     echo '</div>';
@@ -149,18 +150,18 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
             .ecpw-product-price{background:#70352c;color:#fff;padding:5px 16px;border-radius:100px;font-weight:600;}
             .ecpw-product-desc p{color:#7b4d40;font-size:0.95rem;margin:6px 0 16px;}
             .ecpw-flavor-list{display:flex;flex-direction:column;gap:8px;}
-            .ecpw-flavor-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid #efd3c4;}
+            .ecpw-flavor-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;}
             .ecpw-flavor-thumb img{width:35px;height:35px;border-radius:50%;object-fit:cover;margin-right:8px;}
             .ecpw-flavor-info{flex:1;}
             .ecpw-flavor-name{font-weight:600;color:#70352c;font-size:1rem;}
             .ecpw-flavor-sub{font-size:0.9rem;color:#a47c6e;}
             .ecpw-flavor-controls{display:flex;align-items:center;gap:6px;}
             .ecpw-flavor-controls input{width:36px;text-align:center;border:1px solid #e4b7a1;border-radius:6px;padding:3px 0;font-size:0.9rem;}
-            .ecpw-flavor-controls button{background:#a35c4d;color:#fff;border:none;border-radius:6px;width:25px;height:25px;line-height:1;font-size:1rem;cursor:pointer;}
+            .ecpw-flavor-controls button{border:none;border-radius:6px;width:25px;height:25px;line-height:1;font-size:1rem;cursor:pointer;}
             .ecpw-addcart-row{display:flex;align-items:center;justify-content:space-between;margin-top:20px;}
             .ecpw-global-qty{display:flex;align-items:center;gap:8px;}
             .ecpw-global-qty input{width:45px;text-align:center;border:1px solid #e4b7a1;border-radius:6px;padding:5px;}
-            .ecpw-global-qty button{background:#a35c4d;color:#fff;border:none;border-radius:6px;width:25px;height:25px;font-size:1rem;cursor:pointer;}
+            .ecpw-global-qty button{border:none;border-radius:6px;width:25px;height:25px;font-size:1rem;cursor:pointer;}
             .ecpw-addcart-btn{background:#70352c;color:#fff;padding:10px 28px;border:none;border-radius:50px;font-size:1rem;font-weight:500;cursor:pointer;transition:background .2s;}
             .ecpw-addcart-btn:hover{background:#8b4d41;}
             @media(max-width:768px){

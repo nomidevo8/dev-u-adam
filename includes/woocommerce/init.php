@@ -75,7 +75,7 @@ class Dev_Chouchou_Box {
             woocommerce_wp_checkbox([
                 'id'          => '_dev_enable_chouchou_box',
                 'label'       => __('Enable Chouchou Box Selection', 'dev'),
-                'description' => __('Allow customers to choose flavors for this product.', 'dev'),
+                'description' => __('Allow customers to choose Chouchous for this product.', 'dev'),
                 'value'       => $enabled,
             ]);
 
@@ -107,6 +107,10 @@ class Dev_Chouchou_Box {
                 border-radius: 6px;
                 background: #fafafa;
             }
+
+            div#dev_flavor_container label{
+        float: unset !important;
+        }
             .dev_flavor-box header {
                 display: flex;
                 justify-content: space-between;
@@ -176,7 +180,7 @@ class Dev_Chouchou_Box {
             $(document).on("click", ".dev_upload_image", function(e){
                 e.preventDefault();
                 const button = $(this);
-                const frame = wp.media({title:"Select Flavor Image", button:{text:"Use this image"}, multiple:false});
+                const frame = wp.media({title:"Select Chouchou Image", button:{text:"Use this image"}, multiple:false});
                 frame.on("select", function(){
                     const attachment = frame.state().get("selection").first().toJSON();
                     const box = button.closest(".dev_flavor-box");
@@ -218,11 +222,13 @@ class Dev_Chouchou_Box {
             isset($_POST['_dev_max_flavors_allowed']) ? intval($_POST['_dev_max_flavors_allowed']) : ''
         );
         if (isset($_POST['_dev_chouchou_flavors_data'])) {
-            $raw = wp_unslash($_POST['_dev_chouchou_flavors_data']);
-            // Validate JSON; if invalid, store empty array to avoid corrupt meta
-            $decoded = json_decode($raw, true);
-            $to_store = is_array($decoded) ? wp_json_encode($decoded) : '';
-            $product->update_meta_data('_dev_chouchou_flavors_data', $to_store);
+            $decoded = json_decode(wp_unslash($_POST['_dev_chouchou_flavors_data']), true);
+            if (is_array($decoded)) {
+                $to_store = wp_json_encode($decoded, JSON_UNESCAPED_UNICODE);
+                $product->update_meta_data('_dev_chouchou_flavors_data', $to_store);
+            } else {
+                $product->update_meta_data('_dev_chouchou_flavors_data', '');
+            }
         }
     }
 
@@ -296,7 +302,7 @@ class Dev_Chouchou_Box {
                 if ($qty > 0) $flavors[] = $name . ' (' . $qty . ')';
             }
             $item_data[] = [
-                'key'   => __('Selected Flavors', 'dev'),
+                'key'   => __('Selected Chouchous', 'dev'),
                 'value' => implode(', ', $flavors)
             ];
         }
@@ -309,7 +315,7 @@ class Dev_Chouchou_Box {
             foreach ($values['dev_chouchou_flavors'] as $name => $qty) {
                 if ($qty > 0) $flavors[] = $name . ' (' . $qty . ')';
             }
-            $item->add_meta_data(__('Selected Flavors', 'dev'), implode(', ', $flavors));
+            $item->add_meta_data(__('Selected Chouchous', 'dev'), implode(', ', $flavors));
         }
     }
 }

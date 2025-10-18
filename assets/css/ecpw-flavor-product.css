@@ -1,0 +1,186 @@
+	.ecpw-flavor-products {
+	    display: flex;
+	    flex-direction: column;
+	    gap: 50px
+	}
+
+	.ecpw-product-box {
+	    display: flex;
+	    flex-wrap: wrap;
+	    align-items: stretch;
+	    background: #fdf3ee;
+	    border-radius: 18px;
+	    padding: 22px 28px;
+	    gap: 28px;
+	    box-shadow: 0 4px 25px rgba(160, 90, 70, .15);
+	    border: 2px solid #d4a68a;
+	}
+
+	.ecpw-product-image {
+	    flex: 1 1 420px;
+	    min-width: 320px;
+	    border-radius: 14px;
+	    overflow: hidden;
+	}
+
+	.ecpw-product-image img {
+	    width: 100%;
+	    height: 100%;
+	    object-fit: cover;
+	    border-radius: 14px;
+	}
+
+	.ecpw-product-content {
+	    flex: 1 1 420px;
+	    display: flex;
+	    flex-direction: column;
+	    justify-content: space-between;
+	    padding: 10px;
+	}
+
+	.ecpw-product-header {
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+	    margin-bottom: 12px;
+	}
+
+	.ecpw-product-title {
+	    font-family: serif;
+	    font-size: 1.6rem;
+	    color: #70352c;
+	    margin: 0;
+	}
+
+	.ecpw-product-price {
+	    background: #70352c;
+	    color: #fff;
+	    padding: 5px 16px;
+	    border-radius: 100px;
+	    font-weight: 600;
+	}
+
+	.ecpw-product-desc p {
+	    color: #7b4d40;
+	    font-size: 0.95rem;
+	    margin: 6px 0 16px;
+	}
+
+	.ecpw-flavor-list {
+	    display: flex;
+	    flex-direction: column;
+	    gap: 8px;
+	}
+
+	.ecpw-flavor-row {
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+	    padding: 8px 10px;
+	}
+
+	.ecpw-flavor-thumb img {
+	    width: 35px;
+	    height: 35px;
+	    border-radius: 50%;
+	    object-fit: cover;
+	    margin-right: 8px;
+	}
+
+	.ecpw-flavor-info {
+	    flex: 1;
+	}
+
+	.ecpw-flavor-name {
+	    font-weight: 600;
+	    color: #70352c;
+	    font-size: 1rem;
+	}
+
+	.ecpw-flavor-sub {
+	    font-size: 0.9rem;
+	    color: #a47c6e;
+	}
+
+	.ecpw-flavor-controls {
+	    display: flex;
+	    align-items: center;
+	    gap: 6px;
+	}
+
+	.ecpw-flavor-controls input {
+	    width: 36px;
+	    text-align: center;
+	    border: 1px solid #e4b7a1;
+	    border-radius: 6px;
+	    padding: 3px 0;
+	    font-size: 0.9rem;
+	}
+
+	.ecpw-flavor-controls button {
+	    border: none;
+	    border-radius: 6px;
+	    width: 25px;
+	    height: 25px;
+	    line-height: 1;
+	    font-size: 1rem;
+	    cursor: pointer;
+	}
+
+	.ecpw-addcart-row {
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+	    margin-top: 20px;
+	}
+
+	.ecpw-global-qty {
+	    display: flex;
+	    align-items: center;
+	    gap: 8px;
+	}
+
+	.ecpw-global-qty input {
+	    width: 45px;
+	    text-align: center;
+	    border: 1px solid #e4b7a1;
+	    border-radius: 6px;
+	    padding: 5px;
+	}
+
+	.ecpw-global-qty button {
+	    border: none;
+	    border-radius: 6px;
+	    width: 25px;
+	    height: 25px;
+	    font-size: 1rem;
+	    cursor: pointer;
+	}
+
+	.ecpw-addcart-btn {
+	    background: #70352c;
+	    color: #fff;
+	    padding: 10px 28px;
+	    border: none;
+	    border-radius: 50px;
+	    font-size: 1rem;
+	    font-weight: 500;
+	    cursor: pointer;
+	    transition: background .2s;
+	}
+
+	.ecpw-addcart-btn:hover {
+	    background: #8b4d41;
+	}
+
+	@media(max-width:768px) {
+	    .ecpw-product-box {
+	        flex-direction: column;
+	    }
+
+	    .ecpw-product-header {
+	        flex-direction: column;
+	        align-items: flex-start;
+	        gap: 6px;
+	    }
+	}

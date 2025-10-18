@@ -112,8 +112,8 @@
     overflow: hidden;
 }
 .ecpw-products-list .ecpw-qty button {
-    background: #a35c4d;
-    color: #fff;
+    background: transparent;
+    color: #70352c;
     border: none;
     font-size: 1.2rem;
     padding: 6px 12px;
@@ -141,3 +141,82 @@
 .ecpw-products-list .ecpw-add-btn:hover {
     background: #8b4d41;
 }
+
+
+.elementor-widget-ecpw_category_products .woocommerce-Price-amount.amount{
+    color: white !important;}
+    
+    
+    .ecpw-products-list .ecpw-footer{
+        justify-content: end;
+    }
+    
+    .ecpw-products-list .ecpw-qty input{
+    border: none !important;}
+    
+    .ecpw-products-list .ecpw-attr-options{
+        max-width: fit-content;
+    }
+    
+    .ecpw-products-list .ecpw-attr-option input{
+    accent-color: #8b4d41 !important;
+    }
+    
+    .ecpw-products-list .ecpw-desc div{
+    color: #8b4d41 !important;
+    padding : 0px;
+    font-size: 18px;
+    font-weight: 600;}
+    
+    .ecpw-attr-option span{
+    color: #8b4d41 !important;
+    padding: 5px;
+    font-size: 18px;
+    font-weight: 600;}
+    
+    .ecpw-attr-group, .ecpw-desc{
+    border-bottom: 1px solid #8b4d41;
+    padding-bottom: 20px}
+
+
+
+        .ecpw-product-image img{
+            max-height: 400px;
+        }
+        
+        .ecpw-product-price span {
+        color: white !important;}
+        
+        .ecpw-flavor-controls button, .ecpw-global-qty button, .ecpw-qty button {
+            padding: 0px !important;
+            color: #70352c;
+            background: transparent;
+        }
+        
+        .ecpw-flavor-controls input, .ecpw-global-qty input, .ecpw-qty input{
+            padding: 0 0 0 15px !important;
+            width: 50px !important;
+            background: transparent;
+        border: none !important;
+        }
+        
+        .ecpw-flavor-controls, .ecpw-global-qty, .ecpw-qty {
+            border: 1px solid #70352c;
+            border-radius: 20px;
+            padding: 5px;}
+            
+        .ecpw-flavor-controls button:focus, .ecpw-global-qty button:focus{
+            color: white;
+        background: #70352c
+        }
+      
+        
+        .ecpw-flavor-row{
+        background: transparent !important;
+        border: unset ;
+        border-bottom: 1px solid #70352c !important;
+        border-radius: 0px ;
+        padding: 10px 0 20px 0px !important;}
+        
+        .ecpw-flavor-list {
+        margin-top: 40px;}

@@ -25,10 +25,12 @@ add_action( 'plugins_loaded', function() {
             require_once __DIR__ . '/widgets/dev-cart-products.php';
             require_once __DIR__ . '/widgets/dev-category-products.php';
             require_once __DIR__ . '/widgets/dev-flavor-products.php';
+            require_once __DIR__ . '/widgets/dev-class-single-product-widget.php';
             // Register widget instance
             $widgets_manager->register( new \ECPW\Cart_Products_Widget() );
             $widgets_manager->register( new \ECPW\Dev_Category_Products_Widget() );
             $widgets_manager->register( new \ECPW\Dev_Flavor_Products_Widget() );
+			$widgets_manager->register( new \ECPW\Dev_Single_Product_Widget() );
         }
     } );
     // Enqueue styles
@@ -59,20 +61,24 @@ add_action( 'plugins_loaded', function() {
 
         require_once __DIR__ . '/includes/woocommerce/init.php';
 
-		// AJAX endpoint to add products (simple and variable) to cart
 		add_action('wp_ajax_ecpw_add_to_cart', function(){
-			if ( ! function_exists('WC') ) {
+			if (!function_exists('WC')) {
 				wp_send_json_error(['message' => 'WooCommerce not loaded']);
 			}
+
 			$product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
 			$quantity   = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
+
 			if (!$product_id) {
 				wp_send_json_error(['message' => 'Missing product_id']);
 			}
+
 			$product = wc_get_product($product_id);
-			if (! $product || 'publish' !== $product->get_status()) {
+			if (!$product || 'publish' !== $product->get_status()) {
 				wp_send_json_error(['message' => 'Invalid product']);
 			}
+
+			// Collect posted attributes (flavors or real variation attrs)
 			$attributes = [];
 			foreach ($_POST as $key => $value) {
 				if (strpos($key, 'attribute_') === 0) {
@@ -82,28 +88,53 @@ add_action( 'plugins_loaded', function() {
 
 			$variation_id = 0;
 			$variation_attributes = [];
+
+			// Handle variable products (real WC variations)
 			if ($product->is_type('variable')) {
 				$available = $product->get_available_variations();
-				$found = 0;
+				$found = false;
 				foreach ($available as $variation) {
 					$match = true;
 					foreach ($variation['attributes'] as $attr_key => $attr_val) {
 						$posted_val = isset($attributes[$attr_key]) ? $attributes[$attr_key] : '';
-						if ($attr_val !== '' && $posted_val !== $attr_val) { $match = false; break; }
+						if ($attr_val !== '' && $posted_val !== $attr_val) {
+							$match = false;
+							break;
+						}
 					}
-					if ($match) { $variation_id = $variation['variation_id']; $variation_attributes = $variation['attributes']; $found = 1; break; }
+					if ($match) {
+						$variation_id = $variation['variation_id'];
+						$variation_attributes = $variation['attributes'];
+						$found = true;
+						break;
+					}
 				}
-				if (! $found) {
+
+				if (!$found) {
 					wp_send_json_error(['message' => __('Please choose product options.', 'woocommerce')]);
 				}
 			}
 
-			$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes, []);
-			if (! $added) {
+			// ✅ Safe add-to-cart handling for all cases
+			if ($product->is_type('variable') && $variation_id) {
+				$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes);
+			} else {
+				// simple product OR product with flavors
+				$cart_item_data = [];
+
+				// Optional: include flavors in cart item data
+				if (!empty($attributes)) {
+					$cart_item_data['flavors'] = $attributes;
+				}
+
+				$added = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
+			}
+
+			if (!$added) {
 				wp_send_json_error(['message' => __('Could not add to cart', 'woocommerce')]);
 			}
 
-			// Return updated fragments like Woo AJAX add to cart
+			// Return updated cart fragments
 			WC_AJAX::get_refreshed_fragments();
 			wp_die();
 		});

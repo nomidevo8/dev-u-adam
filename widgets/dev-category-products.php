@@ -59,6 +59,13 @@ if (!class_exists('ECPW\\Dev_Category_Products_Widget')) {
         
             $settings = $this->get_settings_for_display();
             $category_slug = sanitize_text_field($settings['product_category']);
+            // If not set in widget and on category archive, get it from context
+            if (empty($category_slug) && function_exists('is_product_category') && is_product_category()) {
+                $current_cat = get_queried_object();
+                if (!empty($current_cat) && !empty($current_cat->slug)) {
+                    $category_slug = $current_cat->slug;
+                }
+            }
             $limit = intval($settings['posts_per_page']);
         
             $args = [
@@ -91,6 +98,12 @@ if (!class_exists('ECPW\\Dev_Category_Products_Widget')) {
                 echo '<div class="ecpw-price-tag">' . wc_price($price_number) . '</div>';
                 echo '</div>';
                 echo '<div class="ecpw-desc">' . wp_kses_post($desc) . '</div>';
+                if ($product->is_type('variable')) {
+                    $available_variations = $product->get_available_variations();
+                    echo '<script type="application/json" class="ecpw-variation-data">'
+                        . wp_json_encode($available_variations)
+                        . '</script>';
+                }
 
                 // ✅ Attributes (post correct variation fields so add-to-cart works)
                 $attributes = $product->get_attributes();
