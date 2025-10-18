@@ -133,7 +133,7 @@ if (!class_exists('ECPW\\Dev_Single_Product_Widget')) {
                 if (!empty($attributes)) {
                     echo '<div class="ecpw-attributes">';
                     foreach ($attributes as $attr_name => $attr_obj) {
-                        $label = wc_attribute_label($attr_name);
+						$label = wc_attribute_label($attr_obj->get_name());
                         $options = $attr_obj->get_options();
                         $field_name = 'attribute_' . sanitize_title($attr_obj->get_name());
 
