@@ -58,17 +58,14 @@
                 if(json && json.fragments) {
                     updateFragments(json.fragments);
                     $btn.text('Ajouté ✓');
-                         // click the elementor cart toggle if found
                     const toggleBtn = document.querySelector('#elementor-menu-cart__toggle_button');
                     if (toggleBtn) toggleBtn.click();
                     setTimeout(function(){ $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
                 } else if(json && json.data && json.data.fragments) {
                     updateFragments(json.data.fragments);
                     $btn.text('Ajouté ✓');
-                            // click the elementor cart toggle if found
                     const toggleBtn = document.querySelector('#elementor-menu-cart__toggle_button');
                     if (toggleBtn) toggleBtn.click();
-
                     setTimeout(function(){ $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
                 } else {
                     $btn.prop('disabled', false).text('Ajouter au panier');
@@ -86,13 +83,13 @@
     $(document).on('click', '.ecpw-flavor-row .qty-plus', function(){
         var $row = $(this).closest('.ecpw-flavor-row');
         var $product = $(this).closest('.ecpw-product-box');
-        var $input = $row.find('input[type=number]');
+        var $input = $row.find('.ecpw-flavor-controls input[type=number]');
         var current = parseInt($input.val()||0,10);
         var maxAllowed = parseInt($product.data('max-flavors')) || 0;
-
+        console.log('Max allowed flavors for this product:', maxAllowed);
         // Calculate total selected flavors in this product box
         var totalSelected = 0;
-        $product.find('.ecpw-flavor-list input[type=number]').each(function(){
+        $product.find('.ecpw-flavor-controls input[type=number]').each(function(){
             totalSelected += parseInt($(this).val() || 0, 10);
         });
 
@@ -106,13 +103,25 @@
         updateFlavorButtons($product);
     });
 
-    $(document).on('click', '.ecpw-flavor-row .qty-minus', function(){
-        var $product = $(this).closest('.ecpw-product-box');
-        var $input = $(this).siblings('input[type=number]');
-        var v = parseInt($input.val()||0,10);
-        if(v > 0) $input.val(v - 1).trigger('change');
-        updateFlavorButtons($product);
+    $(document).on('click', '.ecpw-flavor-row .qty-minus', function(e){
+        const $ctrl = $(this).closest('.ecpw-flavor-controls');
+        const preset = parseInt($ctrl.data('preset') || 0, 10);
+        const $input = $ctrl.find('input[type=number]');
+        let val = parseInt($input.val() || 0, 10);
+
+        // Allow decrement only if current value > preset
+        if (val > preset) {
+            val = val - 1;
+            $input.val(val).trigger('change');
+            const $product = $(this).closest('.ecpw-product-box');
+            updateFlavorButtons($product);
+        } else {
+            // Prevent going below preset
+            e.preventDefault();
+            return false;
+        }
     });
+
 
     // ✅ Increment/decrement global box qty
     $(document).on('click', '.ecpw-global-qty .qty-plus', function(){
@@ -129,15 +138,81 @@
     // ✅ Auto-disable + buttons when limit is hit
     function updateFlavorButtons($product) {
         var maxAllowed = parseInt($product.data('max-flavors')) || 0;
-        if (!maxAllowed) return;
+        if (!maxAllowed) {
+            return;
+        }
 
         var totalSelected = 0;
-        $product.find('.ecpw-flavor-list input[type=number]').each(function(){
+        $product.find('.ecpw-flavor-controls input[type=number]').each(function(){
             totalSelected += parseInt($(this).val() || 0, 10);
         });
 
         var disable = totalSelected >= maxAllowed;
-        $product.find('.ecpw-flavor-row .qty-plus').prop('disabled', disable);
+
+        // Enable all + buttons first
+        $product.find('.ecpw-flavor-row .qty-plus').prop('disabled', false);
+
+        // Then disable only if the limit is reached
+        if (disable) {
+            $product.find('.ecpw-flavor-row .qty-plus').prop('disabled', true);
+        }
+
+        // Debug each button state
+        $product.find('.ecpw-flavor-row').each(function(index){
+            const $btn = $(this).find('.qty-plus');
+        });
     }
+
+    // ✅ Load more functionality
+    $(document).on('click', '.ecpw-load-more-flavors', function(){
+        const $btn = $(this);
+        const $list = $btn.closest('.ecpw-flavor-list');
+        $list.find('.ecpw-flavor-column:hidden').slice(0, 100).slideDown();
+        $btn.remove();
+    });
+
+    // ✅ Improved counter logic
+    function updateFlavorCounter($product){
+        const $list = $product.find('.ecpw-flavor-list');
+        const $inputs = $list.find('.ecpw-flavor-controls input[type=number]');
+        var totalAvailable = parseInt($product.data('max-flavors')) || 0;
+
+        let totalSelected = 0;
+
+        console.log('----------------------------------------');
+        console.log('[updateFlavorCounter] Product ID:', $product.data('product-id'));
+        console.log('[updateFlavorCounter] Max allowed (totalAvailable):', totalAvailable);
+        console.log('[updateFlavorCounter] --- Checking each flavor input ---');
+
+        $inputs.each(function(index){
+            const $input = $(this);
+            const preset = parseInt($input.closest('.ecpw-flavor-controls').data('preset') || 0, 10);
+            const val = parseInt($input.val() || 0, 10);
+            totalSelected += val;
+            console.log(`   Flavor ${index + 1}: preset = ${preset}, current value = ${val}`);
+        });
+
+        console.log('[updateFlavorCounter] Total selected:', totalSelected);
+        console.log('[updateFlavorCounter] Display text:', `${totalSelected} selected out of ${totalAvailable}`);
+        console.log('----------------------------------------');
+        console.log('[updateFlavorCounter] Counter element found?', $list.find('.ecpw-flavor-counter').length);
+console.log('[updateFlavorCounter] Load more button found?', $list.find('.ecpw-load-more-flavors').length);
+
+        // show correct message
+        $list.find('.ecpw-flavor-counter').text(`${totalSelected} selected out of ${totalAvailable}`);
+    }
+
+    // ✅ Update counter when values change
+    $(document).on('change', '.ecpw-flavor-list input[type=number]', function(){
+        const $product = $(this).closest('.ecpw-product-box');
+        updateFlavorCounter($product);
+    });
+
+    // ✅ Initialize counters on page load
+    $(function(){
+        $('.ecpw-product-box').each(function(){
+            updateFlavorCounter($(this));
+        });
+    });
 
 })(jQuery);

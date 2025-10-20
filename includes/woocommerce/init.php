@@ -110,6 +110,7 @@ class Dev_Chouchou_Box {
 
             div#dev_flavor_container label{
         float: unset !important;
+        margin: unset;
         }
             .dev_flavor-box header {
                 display: flex;
@@ -120,6 +121,7 @@ class Dev_Chouchou_Box {
             .dev_flavor-fields { display: none; margin-top: 6px; }
             .dev_flavor-box.active .dev_flavor-fields { display: block; }
             .dev_flavor-box img { width: 70px; border-radius: 4px; margin-top: 4px; }
+          
         </style>
 
         <script>
@@ -141,6 +143,13 @@ class Dev_Chouchou_Box {
                             <div class="dev_flavor-fields">
                                 <p><label>Title<br><input type="text" class="dev_flavor_title" value="${flavor.title||''}" style="width:100%;"></label></p>
                                 <p><label>Subtitle<br><input type="text" class="dev_flavor_subtitle" value="${flavor.subtitle||''}" style="width:100%;"></label></p>
+                                <p style="display: flex; flex-direction: column;">
+                                    <label>Preset Quantity<br>
+                                        <input type="number" class="dev_flavor_preset" value="${flavor.preset || 0}" min="0" style="width:100%;" placeholder="e.g. 1 for mandatory">
+                                    </label>
+                                    <small>If greater than 0, this quantity will be preselected and mandatory.</small>
+                                </p>
+
                                 <p>
                                     <label>Image<br>
                                         <input type="text" class="dev_flavor_image" value="${flavor.image||''}" style="width:80%;" placeholder="Image URL">
@@ -154,7 +163,32 @@ class Dev_Chouchou_Box {
                 });
             }
 
-            render();
+            render();   
+            
+            $(document).on("input change", ".dev_flavor_preset", function(){
+                validatePresets();
+                save();
+            });
+
+            function validatePresets() {
+                const maxAllowed = parseInt($("#_dev_max_flavors_allowed").val()) || 0;
+                let totalPresets = 0;
+
+                container.find(".dev_flavor_preset").each(function() {
+                    totalPresets += parseInt($(this).val() || 0);
+                });
+
+                if (maxAllowed && totalPresets > maxAllowed) {
+                    alert(
+                        "⚠️ The total preset quantity (" + totalPresets +
+                        ") exceeds the Max Total Quantity (" + maxAllowed + ").\n\n" +
+                        "Please increase the Max Total Quantity or reduce preset values."
+                    );
+                    return false;
+                }
+                return true;
+            }
+
 
             // toggle fields
             $(document).on("click", ".dev_flavor-box header", function(){
@@ -201,7 +235,8 @@ class Dev_Chouchou_Box {
                     data.push({
                         title: $(this).find(".dev_flavor_title").val(),
                         subtitle: $(this).find(".dev_flavor_subtitle").val(),
-                        image: $(this).find(".dev_flavor_image").val()
+                        image: $(this).find(".dev_flavor_image").val(),
+                        preset: parseInt($(this).find(".dev_flavor_preset").val()) || 0
                     });
                 });
                 hidden.val(JSON.stringify(data));

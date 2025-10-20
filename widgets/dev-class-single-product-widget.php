@@ -91,26 +91,38 @@ if (!class_exists('ECPW\\Dev_Single_Product_Widget')) {
 				$box = new \Dev_Chouchou_Box();
 				$flavors = $box->dev_decode_flavors($flavors_raw);
 				if (!empty($flavors)) {
-					echo '<div class="ecpw-flavor-list">';
+			
+					echo '<div class="ecpw-flavor-list">'; 
+					$flavor_count = 0;
+					$total_flavors = count($flavors);
 					foreach ($flavors as $flavor) {
-						$title = esc_html($flavor['title'] ?? '');
-						$subtitle = esc_html($flavor['subtitle'] ?? '');
-						$img = esc_url($flavor['image'] ?? '');
-						echo '<div class="ecpw-flavor-row">';
-						if ($img)
-							echo '<div class="ecpw-flavor-thumb"><img src="' . $img . '" alt="' . $title . '"></div>';
-						echo '<div class="ecpw-flavor-info">';
-						echo '<div class="ecpw-flavor-name">' . $title . '</div>';
-						if ($subtitle)
-							echo '<div class="ecpw-flavor-sub">' . $subtitle . '</div>';
-						echo '</div>';
-						echo '<div class="ecpw-flavor-controls">';
-						echo '<button type="button" class="qty-minus">−</button>';
-						echo '<input type="number" value="0" min="0">';
-						echo '<button type="button" class="qty-plus">+</button>';
-						echo '</div>';
+						$flavor_count++;
+						$hidden_class = $flavor_count > 3 ? ' style="display:none;"' : '';
+
+						echo '<div class="ecpw-flavor-column"'.$hidden_class.'>';
+							$title = esc_html($flavor['title'] ?? '');
+							$subtitle = esc_html($flavor['subtitle'] ?? '');
+							$img = esc_url($flavor['image'] ?? '');
+							echo '<div class="ecpw-flavor-row">';
+								if ($img) echo '<div class="ecpw-flavor-thumb"><img src="'.$img.'" alt="'.$title.'"></div>';
+								echo '<div class="ecpw-flavor-info">';
+									echo '<div class="ecpw-flavor-name">'.$title.'</div>';
+									if ($subtitle) echo '<div class="ecpw-flavor-sub">'.$subtitle.'</div>';
+								echo '</div>';
+								$preset = isset($flavor['preset']) ? intval($flavor['preset']) : 0;
+								echo '<div class="ecpw-flavor-controls" data-preset="'.$preset.'">';
+									echo '<button type="button" class="qty-minus">−</button>';
+									echo '<input type="number" value="'.esc_attr($preset).'" min="'.$preset.'">';
+									echo '<button type="button" class="qty-plus">+</button>';
+								echo '</div>';
+							echo '</div>';
 						echo '</div>';
 					}
+
+					if ($total_flavors > 3) {
+						echo '<button type="button" class="ecpw-load-more-flavors" style="margin-top:10px;">Load more</button>';
+					}
+					echo '<div class="ecpw-flavor-counter" style="margin-top:8px;font-size:0.9rem;color:#70352c;"></div>';
 					echo '</div>';
 				}
 

@@ -157,7 +157,7 @@
 	    cursor: pointer;
 	}
 
-	.ecpw-addcart-btn {
+	.ecpw-addcart-btn, .ecpw-load-more-flavors {
 	    background: #70352c;
 	    color: #fff;
 	    padding: 10px 28px;
@@ -169,7 +169,7 @@
 	    transition: background .2s;
 	}
 
-	.ecpw-addcart-btn:hover {
+	.ecpw-addcart-btn:hover, .ecpw-load-more-flavors:hover {
 	    background: #8b4d41;
 	}
 
