@@ -80,7 +80,8 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
             foreach ($cart as $cart_item_key => $cart_item) {
                 $product = $cart_item['data'];
                 $quantity = intval($cart_item['quantity']);
-                $price_html = $product->get_price_html();
+                $price_html = wc_price( $cart_item['line_total'] );
+                
                 $image = $product->get_image('woocommerce_thumbnail');
                 $name = $product->get_name();
 
