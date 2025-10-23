@@ -80,6 +80,7 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
                 if (!$product) continue;
 
                 $price_html = $product->get_price_html();
+                $base_price = floatval($product->get_price());
                 $image = wp_get_attachment_image_src($product->get_image_id(), 'large')[0] ?? '';
                 $flavors_raw = $product->get_meta('_dev_chouchou_flavors_data');
                 $box = new \Dev_Chouchou_Box();
@@ -87,16 +88,24 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
                 $max_flavors = intval($product->get_meta('_dev_max_flavors_allowed')) ?: 1;
                 if (empty($flavors)) continue;
 
-                echo '<div class="ecpw-product-box" data-max-flavors="' . esc_attr($max_flavors) . '" data-product-id="' . esc_attr($product->get_id()) . '">';
+                echo '<div class="ecpw-product-box" 
+                        data-max-flavors="' . esc_attr($max_flavors) . '" 
+                        data-product-id="' . esc_attr($product->get_id()) . '" 
+                        data-base-price="' . esc_attr($base_price) . '">';
                     echo '<div class="ecpw-product-image">';
                         if ($image) echo '<img src="'.esc_url($image).'" alt="'.esc_attr($product->get_name()).'" />';
                     echo '</div>';
 
                     echo '<div class="ecpw-product-content">';
                         echo '<div class="ecpw-product-header">';
-                            echo '<h2 class="ecpw-product-title">'.esc_html($product->get_name()).'</h2>';
-                            if ($price_html) echo '<div class="ecpw-product-price">'.$price_html.'</div>';
+                            echo '<h2 class="ecpw-product-title">
+                                    <a href="' . esc_url(get_permalink($product->get_id())) . '">
+                                        ' . esc_html($product->get_name()) . '
+                                    </a>
+                                </h2>';
+                            if ($price_html) echo '<div class="ecpw-product-price">' . $price_html . '</div>';
                         echo '</div>';
+
 
                         echo '<div class="ecpw-product-desc">';
                         echo wp_kses_post( $product->get_short_description() );
@@ -159,7 +168,7 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
             .ecpw-product-image img{width:100%;height:100%;object-fit:cover;border-radius:14px;}
             .ecpw-product-content{flex:1 1 420px;display:flex;flex-direction:column;justify-content:space-between;padding:10px;}
             .ecpw-product-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-            .ecpw-product-title{font-family:serif;font-size:1.6rem;color:#70352c;margin:0;}
+            .ecpw-product-title a{font-family:serif;font-size:1.6rem;color:#70352c;margin:0;}
             .ecpw-product-price{background:#70352c;color:#fff;padding:5px 16px;border-radius:100px;font-weight:600;}
             .ecpw-product-desc p{color:#7b4d40;font-size:0.95rem;margin:6px 0 16px;}
             .ecpw-flavor-list{display:flex;flex-direction:column;gap:8px;}

@@ -94,7 +94,12 @@ if (!class_exists('ECPW\\Dev_Category_Products_Widget')) {
                 echo '<div class="ecpw-thumb">' . $image . '</div>';
                 echo '<div class="ecpw-details">';
                 echo '<div class="ecpw-header">';
-                echo '<h3 class="ecpw-title">' . esc_html($title) . '</h3>';
+                echo '<h3 class="ecpw-title">
+                        <a href="' . esc_url(get_permalink($product->get_id())) . '">
+                            ' . esc_html($title) . '
+                        </a>
+                    </h3>';
+
                 echo '<div class="ecpw-price-tag">' . wc_price($price_number) . '</div>';
                 echo '</div>';
                 echo '<div class="ecpw-desc">' . wp_kses_post($desc) . '</div>';

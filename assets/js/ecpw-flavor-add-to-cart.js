@@ -37,6 +37,22 @@
         var $btn = $(this);
         $btn.prop('disabled', true).text('Ajout…');
 
+        let extraIngredientsArray = [];
+
+        $product.find('.ecpw-flavor-row').each(function(){
+            const $ctrl = $(this).find('.ecpw-flavor-controls');
+            const preset = parseInt($ctrl.data('preset') || 0, 10);
+            const qty = parseInt($ctrl.find('input[type=number]').val() || 0, 10);
+            const name = $(this).find('.ecpw-flavor-name').text().trim();
+
+            if (qty > preset) {
+                for (let i = 0; i < (qty - preset); i++) {
+                    extraIngredientsArray.push(name);
+                }
+            }
+        });
+
+
         $.ajax({
             url: (window.ecpwFlavorData ? ecpwFlavorData.ajax_url : ''),
             type: 'POST',
@@ -45,7 +61,8 @@
                 action: 'ecpw_add_to_cart',
                 product_id: product_id,
                 quantity: globalQty,
-                dev_chouchou_flavors: flavors
+                dev_chouchou_flavors: flavors,
+                extra_ingredients: JSON.stringify(extraIngredientsArray)
             },
             success: function(json) {
                 function updateFragments(fragments) {
@@ -175,31 +192,38 @@
     function updateFlavorCounter($product){
         const $list = $product.find('.ecpw-flavor-list');
         const $inputs = $list.find('.ecpw-flavor-controls input[type=number]');
-        var totalAvailable = parseInt($product.data('max-flavors')) || 0;
+        const totalAvailable = parseInt($product.data('max-flavors')) || 0;
+        const basePrice = parseFloat($product.data('base-price')) || 0;
+        const $priceDisplay = $product.find('.ecpw-product-price');
 
         let totalSelected = 0;
+        let extraFlavors = 0;
 
-        console.log('----------------------------------------');
-        console.log('[updateFlavorCounter] Product ID:', $product.data('product-id'));
-        console.log('[updateFlavorCounter] Max allowed (totalAvailable):', totalAvailable);
-        console.log('[updateFlavorCounter] --- Checking each flavor input ---');
-
-        $inputs.each(function(index){
+        $inputs.each(function(){
             const $input = $(this);
             const preset = parseInt($input.closest('.ecpw-flavor-controls').data('preset') || 0, 10);
             const val = parseInt($input.val() || 0, 10);
             totalSelected += val;
-            console.log(`   Flavor ${index + 1}: preset = ${preset}, current value = ${val}`);
+
+            if (val > preset) {
+                extraFlavors += (val - preset);
+            }
         });
 
-        console.log('[updateFlavorCounter] Total selected:', totalSelected);
-        console.log('[updateFlavorCounter] Display text:', `${totalSelected} selected out of ${totalAvailable}`);
-        console.log('----------------------------------------');
-        console.log('[updateFlavorCounter] Counter element found?', $list.find('.ecpw-flavor-counter').length);
-console.log('[updateFlavorCounter] Load more button found?', $list.find('.ecpw-load-more-flavors').length);
+        // ✅ Update flavor counter text
+        $list.find('.ecpw-flavor-counter')
+            .text(`${totalSelected} selected out of ${totalAvailable} (Extra: ${extraFlavors})`);
 
-        // show correct message
-        $list.find('.ecpw-flavor-counter').text(`${totalSelected} selected out of ${totalAvailable}`);
+        // ✅ Calculate new price with +2 per extra
+        const extraCost = extraFlavors * 2; // €2 each
+        const newPrice = basePrice + extraCost;
+
+        // ✅ Update display (keep currency format)
+        if ($priceDisplay.length) {
+            // Option 1: if price_html is numeric (simple €)
+            $priceDisplay.text(newPrice.toFixed(2) + ' €');
+            // Or if you prefer to keep WooCommerce style (e.g. before/after currency), adjust accordingly
+        }
     }
 
     // ✅ Update counter when values change

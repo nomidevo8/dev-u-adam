@@ -60,11 +60,16 @@ if (!class_exists('ECPW\\Dev_Single_Product_Widget')) {
 			$is_flavor_box = $product->get_meta('_dev_enable_chouchou_box') === 'yes';
 			$image = wp_get_attachment_image_src($product->get_image_id(), 'large')[0] ?? '';
 			$price_html = $product->get_price_html();
+			$base_price = floatval($product->get_price());
 			$desc = $product->get_short_description();
 			$max_flavors = intval($product->get_meta('_dev_max_flavors_allowed')) ?: 1;
 	
 			echo '<div class="ecpw-flavor-products">';
-			echo '<div class="ecpw-product-box ecpw-product" data-max-flavors="' . esc_attr($max_flavors) . '" data-product-id="' . esc_attr($product->get_id()) . '">';
+			echo '<div class="ecpw-product-box ecpw-product" 
+				data-max-flavors="' . esc_attr($max_flavors) . '" 
+				data-product-id="' . esc_attr($product->get_id()) . '" 
+				data-base-price="' . esc_attr($base_price) . '">';
+
 			echo '<div class="ecpw-product-image">';
 			if ($image)
 				echo '<img src="' . esc_url($image) . '" alt="' . esc_attr($product->get_name()) . '">';

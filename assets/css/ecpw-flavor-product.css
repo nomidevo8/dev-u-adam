@@ -45,7 +45,7 @@
 	    margin-bottom: 12px;
 	}
 
-	.ecpw-product-title {
+	.ecpw-product-title a{
 	    font-family: serif;
 	    font-size: 1.6rem;
 	    color: #70352c;
