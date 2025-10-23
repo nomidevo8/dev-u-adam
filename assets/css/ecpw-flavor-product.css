@@ -5,6 +5,7 @@
 	}
 
 	.ecpw-product-box {
+		max-width: 500px;
 	    display: flex;
 	    flex-wrap: wrap;
 	    align-items: stretch;

@@ -163,7 +163,7 @@ if (!class_exists('ECPW\Dev_Flavor_Products_Widget')) {
 
             <style>
             .ecpw-flavor-products{display:flex;flex-direction:column;gap:50px}
-            .ecpw-product-box{display:flex;flex-wrap:wrap;align-items:stretch;background:#fdf3ee;border-radius:18px;padding:22px 28px;gap:28px;box-shadow:0 4px 25px rgba(160,90,70,.15);border:2px solid #d4a68a;}
+            .ecpw-product-box{max-width: 500px; display:flex;flex-wrap:wrap;align-items:stretch;background:#fdf3ee;border-radius:18px;padding:22px 28px;gap:28px;box-shadow:0 4px 25px rgba(160,90,70,.15);border:2px solid #d4a68a;}
             .ecpw-product-image{flex:1 1 420px;min-width:320px;border-radius:14px;overflow:hidden;}
             .ecpw-product-image img{width:100%;height:100%;object-fit:cover;border-radius:14px;}
             .ecpw-product-content{flex:1 1 420px;display:flex;flex-direction:column;justify-content:space-between;padding:10px;}
