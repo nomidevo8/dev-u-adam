@@ -54,6 +54,17 @@
     font-weight: 600;
     color: #70352c;
 }
+
+h3.ecpw-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #70352c;
+    margin: 0;
+}
+.ecpw-products-list .ecpw-title a:hover, .ecpw-product-title a:hover {
+ color: black;
+}
+
 .ecpw-products-list .ecpw-price-tag {
     background: #70352c;
     color: #fff;
