@@ -26,6 +26,7 @@ add_action('plugins_loaded', function () {
 			require_once __DIR__ . '/widgets/dev-category-products.php';
 			require_once __DIR__ . '/widgets/dev-flavor-products.php';
 			require_once __DIR__ . '/widgets/dev-class-single-product-widget.php';
+			require_once __DIR__ . '/shortcodes/dev-pickup-time.php';
 			// Register widget instance
 			$widgets_manager->register(new \ECPW\Cart_Products_Widget());
 			$widgets_manager->register(new \ECPW\Dev_Category_Products_Widget());
