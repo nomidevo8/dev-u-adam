@@ -215,7 +215,20 @@
             .text(`${totalSelected} selected out of ${totalAvailable} (Extra: ${extraFlavors})`);
 
         // ✅ Calculate new price with +2 per extra
-        const extraCost = extraFlavors * 2; // €2 each
+        let extraCost = 0;
+
+        $inputs.each(function(){
+            const $input = $(this);
+            const $ctrl = $input.closest('.ecpw-flavor-controls');
+            const preset = parseInt($ctrl.data('preset') || 0, 10);
+            const val = parseInt($input.val() || 0, 10);
+            const price = parseFloat($ctrl.data('extra-price') || 0);
+
+            if (val > preset) {
+                extraCost += (val - preset) * price;
+            }
+        });
+
         const newPrice = basePrice + extraCost;
 
         // ✅ Update display (keep currency format)

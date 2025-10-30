@@ -90,13 +90,13 @@ class Dev_Chouchou_Box {
 
             <div id="dev_flavor_wrapper" style="margin-top:15px;">
                 <h4 style="margin-bottom:5px;"><?php esc_html_e('Flavor Options', 'dev'); ?></h4>
-                <small><?php esc_html_e('Each flavor has a title, subtitle, and image.', 'dev'); ?></small>
+                <small><?php esc_html_e('Each flavor has a title, subtitle, image, and optional extra price.', 'dev'); ?></small>
                 <div id="dev_flavor_container" style="margin-top:10px;"></div>
                 <button type="button" class="button dev_add_flavor">+ Add Flavor</button>
             </div>
 
             <input type="hidden" id="_dev_chouchou_flavors_data" name="_dev_chouchou_flavors_data"
-                   value="<?php echo esc_attr($data_json); ?>">
+                value="<?php echo esc_attr($data_json); ?>">
         </div>
 
         <style>
@@ -108,10 +108,10 @@ class Dev_Chouchou_Box {
                 background: #fafafa;
             }
 
-            div#dev_flavor_container label{
-        float: unset !important;
-        margin: unset;
-        }
+            div#dev_flavor_container label {
+                float: unset !important;
+                margin: unset;
+            }
             .dev_flavor-box header {
                 display: flex;
                 justify-content: space-between;
@@ -121,7 +121,6 @@ class Dev_Chouchou_Box {
             .dev_flavor-fields { display: none; margin-top: 6px; }
             .dev_flavor-box.active .dev_flavor-fields { display: block; }
             .dev_flavor-box img { width: 70px; border-radius: 4px; margin-top: 4px; }
-          
         </style>
 
         <script>
@@ -151,6 +150,12 @@ class Dev_Chouchou_Box {
                                 </p>
 
                                 <p>
+                                    <label>Extra Price ($)<br>
+                                        <input type="number" class="dev_flavor_price" value="${flavor.price || 0}" min="0" step="0.01" style="width:100%;" placeholder="e.g. 1.50">
+                                    </label>
+                                </p>
+
+                                <p>
                                     <label>Image<br>
                                         <input type="text" class="dev_flavor_image" value="${flavor.image||''}" style="width:80%;" placeholder="Image URL">
                                         <button type="button" class="button dev_upload_image">Upload</button>
@@ -164,7 +169,7 @@ class Dev_Chouchou_Box {
             }
 
             render();   
-            
+
             $(document).on("input change", ".dev_flavor_preset", function(){
                 validatePresets();
                 save();
@@ -189,7 +194,6 @@ class Dev_Chouchou_Box {
                 return true;
             }
 
-
             // toggle fields
             $(document).on("click", ".dev_flavor-box header", function(){
                 $(this).parent().toggleClass("active");
@@ -197,7 +201,7 @@ class Dev_Chouchou_Box {
 
             // Add
             $(document).on("click", ".dev_add_flavor", function(){
-                data.push({title:"", subtitle:"", image:""});
+                data.push({title:"", subtitle:"", image:"", preset:0, price:0});
                 render();
                 save();
             });
@@ -227,7 +231,7 @@ class Dev_Chouchou_Box {
             });
 
             // Save on input change
-            $(document).on("input change", ".dev_flavor_title, .dev_flavor_subtitle, .dev_flavor_image", save);
+            $(document).on("input change", ".dev_flavor_title, .dev_flavor_subtitle, .dev_flavor_image, .dev_flavor_price", save);
 
             function save(){
                 data = [];
@@ -236,7 +240,8 @@ class Dev_Chouchou_Box {
                         title: $(this).find(".dev_flavor_title").val(),
                         subtitle: $(this).find(".dev_flavor_subtitle").val(),
                         image: $(this).find(".dev_flavor_image").val(),
-                        preset: parseInt($(this).find(".dev_flavor_preset").val()) || 0
+                        preset: parseInt($(this).find(".dev_flavor_preset").val()) || 0,
+                        price: parseFloat($(this).find(".dev_flavor_price").val()) || 0
                     });
                 });
                 hidden.val(JSON.stringify(data));
@@ -266,6 +271,7 @@ class Dev_Chouchou_Box {
             }
         }
     }
+
 
     /**
      * ===============================

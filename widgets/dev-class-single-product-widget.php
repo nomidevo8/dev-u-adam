@@ -115,7 +115,8 @@ if (!class_exists('ECPW\\Dev_Single_Product_Widget')) {
 									if ($subtitle) echo '<div class="ecpw-flavor-sub">'.$subtitle.'</div>';
 								echo '</div>';
 								$preset = isset($flavor['preset']) ? intval($flavor['preset']) : 0;
-								echo '<div class="ecpw-flavor-controls" data-preset="'.$preset.'">';
+								$extra_price = isset($flavor['price']) ? floatval($flavor['price']) : 0;
+								echo '<div class="ecpw-flavor-controls" data-preset="'.$preset.'" data-extra-price="'.$extra_price.'">';
 									echo '<button type="button" class="qty-minus">−</button>';
 									echo '<input type="number" value="'.esc_attr($preset).'" min="'.$preset.'">';
 									echo '<button type="button" class="qty-plus">+</button>';
