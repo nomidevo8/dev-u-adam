@@ -225,7 +225,7 @@ if (!class_exists('ECPW\\Dev_Single_Product_Widget')) {
 					'ecpw-flavor-add-to-cart',
 					plugins_url('../assets/js/ecpw-flavor-add-to-cart.js', __FILE__),
 					array('jquery'),
-					null,
+					'1.0.0',
 					true
 				);
 				wp_localize_script('ecpw-flavor-add-to-cart', 'ecpwFlavorData', array(

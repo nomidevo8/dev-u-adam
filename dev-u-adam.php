@@ -146,104 +146,121 @@ add_action('plugins_loaded', function () {
 
 
 	add_action('wp_ajax_ecpw_add_to_cart', function () {
-		if (!function_exists('WC')) {
-			wp_send_json_error(['message' => 'WooCommerce not loaded']);
-		}
+		try {
 
-		$product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
-		$quantity = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
-
-		if (!$product_id) {
-			wp_send_json_error(['message' => 'Missing product_id']);
-		}
-
-		$product = wc_get_product($product_id);
-		if (!$product || 'publish' !== $product->get_status()) {
-			wp_send_json_error(['message' => 'Invalid product']);
-		}
-
-		// Collect posted attributes (flavors or real variation attrs)
-		$attributes = [];
-		foreach ($_POST as $key => $value) {
-			if (strpos($key, 'attribute_') === 0) {
-				$attributes[$key] = wc_clean(wp_unslash($value));
+			if (!function_exists('WC')) {
+				wp_send_json_error(['message' => 'WooCommerce not loaded']);
 			}
-		}
 
-		$variation_id = 0;
-		$variation_attributes = [];
+			$product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+			$quantity   = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
 
-		// Handle variable products (real WC variations)
-		if ($product->is_type('variable')) {
-			$available = $product->get_available_variations();
-			$found = false;
-			foreach ($available as $variation) {
-				$match = true;
-				foreach ($variation['attributes'] as $attr_key => $attr_val) {
-					$posted_val = isset($attributes[$attr_key]) ? $attributes[$attr_key] : '';
-					if ($attr_val !== '' && $posted_val !== $attr_val) {
-						$match = false;
+
+			if (!$product_id) {
+				wp_send_json_error(['message' => 'Missing product_id']);
+			}
+
+			$product = wc_get_product($product_id);
+			if (!$product || 'publish' !== $product->get_status()) {
+				wp_send_json_error(['message' => 'Invalid product']);
+			}
+
+			$attributes = [];
+			foreach ($_POST as $key => $value) {
+				if (strpos($key, 'attribute_') === 0) {
+					$attributes[$key] = wc_clean(wp_unslash($value));
+				}
+			}
+
+			$variation_id = 0;
+			$variation_attributes = [];
+
+			if ($product->is_type('variable')) {
+				$available = $product->get_available_variations();
+				$found = false;
+
+				foreach ($available as $variation) {
+					$match = true;
+					foreach ($variation['attributes'] as $attr_key => $attr_val) {
+						$posted_val = isset($attributes[$attr_key]) ? $attributes[$attr_key] : '';
+						if ($attr_val !== '' && $posted_val !== $attr_val) {
+							$match = false;
+							break;
+						}
+					}
+					if ($match) {
+						$variation_id = $variation['variation_id'];
+						$variation_attributes = $variation['attributes'];
+						$found = true;
 						break;
 					}
 				}
-				if ($match) {
-					$variation_id = $variation['variation_id'];
-					$variation_attributes = $variation['attributes'];
-					$found = true;
-					break;
+
+				if (!$found) {
+					wp_send_json_error(['message' => __('Please choose product options.', 'woocommerce')]);
 				}
 			}
 
-			if (!$found) {
-				wp_send_json_error(['message' => __('Please choose product options.', 'woocommerce')]);
+			$cart_item_data = [];
+
+			if (!empty($attributes)) {
+				$cart_item_data['flavors'] = $attributes;
 			}
-		}
 
-		// ✅ Simple product OR flavor-based logic
-		$cart_item_data = [];
-
-		if (!empty($attributes)) {
-			$cart_item_data['flavors'] = $attributes;
-		}
-
-		// ✅ Add extra ingredients if sent
-		if (!empty($_POST['extra_ingredients'])) {
-			$extras = json_decode(stripslashes($_POST['extra_ingredients']), true);
-			if (is_array($extras)) {
-				$cart_item_data['extra_ingredients'] = $extras;
-				$cart_item_data['extra_count'] = count($extras); // easier for price calc
+			if (!empty($_POST['extra_ingredients'])) {
+				$extras = json_decode(stripslashes($_POST['extra_ingredients']), true);
+				if (is_array($extras)) {
+					$cart_item_data['extra_ingredients'] = $extras;
+					$cart_item_data['extra_count'] = count($extras);
+					('Extra ingredients: ' . print_r($extras, true));
+				}
 			}
-		}
 
-		// Add to cart
-		if ($product->is_type('variable') && $variation_id) {
-			$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes, $cart_item_data);
-		} else {
-			$added = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
-		}
+			// Add to cart
+			if ($product->is_type('variable') && $variation_id) {
+				$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes, $cart_item_data);
+			} else {
+				$added = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
+			}
 
-		if (!$added) {
-			wp_send_json_error(['message' => __('Could not add to cart', 'woocommerce')]);
-		}
+			if (!$added) {
+				('❌ add_to_cart() failed');
+				wp_send_json_error(['message' => __('Could not add to cart', 'woocommerce')]);
+			}
 
-		// Return updated cart fragments
-		WC_AJAX::get_refreshed_fragments();
-		wp_die();
+
+			WC()->cart->calculate_totals();
+
+			ob_start();
+			woocommerce_mini_cart();
+			$mini_cart = ob_get_clean();
+
+			$fragments = apply_filters('woocommerce_add_to_cart_fragments', [
+				'div.widget_shopping_cart_content' => '<div class="widget_shopping_cart_content">' . $mini_cart . '</div>',
+			]);
+
+
+			wp_send_json_success([
+				'fragments' => $fragments,
+				'cart_hash' => WC()->cart->get_cart_hash(),
+			]);
+		} catch (Throwable $e) {
+			wp_send_json_error(['message' => $e->getMessage()]);
+		}
 	});
-	add_action('wp_ajax_nopriv_ecpw_add_to_cart', function () {
-		do_action('wp_ajax_ecpw_add_to_cart'); });
 
-		
+	add_action('wp_ajax_nopriv_ecpw_add_to_cart', function () {
+		do_action('wp_ajax_ecpw_add_to_cart');
+	});
 
 	add_action('woocommerce_before_calculate_totals', function ($cart) {
 		if (is_admin() && !defined('DOING_AJAX')) {
 			return;
 		}
 
-		foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+		foreach ($cart->get_cart() as $cart_item_key => &$cart_item) {
 			if (!empty($cart_item['extra_ingredients']) && is_array($cart_item['extra_ingredients'])) {
 				$extra_price_total = 0;
-
 				foreach ($cart_item['extra_ingredients'] as $extra) {
 					if (!empty($extra['price'])) {
 						$extra_price_total += floatval($extra['price']);
@@ -255,9 +272,9 @@ add_action('plugins_loaded', function () {
 					$cart_item['data']->set_price($base_price + $extra_price_total);
 				}
 			}
-
 		}
 	});
+
 
 
 });

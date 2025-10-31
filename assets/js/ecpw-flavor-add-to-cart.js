@@ -46,12 +46,11 @@
             const name = $(this).find('.ecpw-flavor-name').text().trim();
 
         if (qty > preset) {
-            const extraPrice = parseFloat($ctrl.data('price') || 0); 
+            const extraPrice = parseFloat($ctrl.data('extra-price') || 0); 
             for (let i = 0; i < (qty - preset); i++) {
                 extraIngredientsArray.push({ name, price: extraPrice });
             }
         }
-
         });
 
 
@@ -105,7 +104,6 @@
         var $input = $row.find('.ecpw-flavor-controls input[type=number]');
         var current = parseInt($input.val()||0,10);
         var maxAllowed = parseInt($product.data('max-flavors')) || 0;
-        console.log('Max allowed flavors for this product:', maxAllowed);
         // Calculate total selected flavors in this product box
         var totalSelected = 0;
         $product.find('.ecpw-flavor-controls input[type=number]').each(function(){
