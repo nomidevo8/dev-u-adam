@@ -207,15 +207,18 @@ add_action('plugins_loaded', function () {
 				$cart_item_data['flavors'] = $attributes;
 			}
 
+		// ✅ store total price from JS
+			if (!empty($_POST['total_price'])) {
+				$cart_item_data['total_price'] = floatval($_POST['total_price']);
+			}
+
+			// ✅ handle extra ingredients
 			if (!empty($_POST['extra_ingredients'])) {
 				$extras = json_decode(stripslashes($_POST['extra_ingredients']), true);
 				if (is_array($extras)) {
 					$cart_item_data['extra_ingredients'] = $extras;
-					$cart_item_data['extra_count'] = count($extras);
-					('Extra ingredients: ' . print_r($extras, true));
 				}
 			}
-
 			// Add to cart
 			if ($product->is_type('variable') && $variation_id) {
 				$added = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation_attributes, $cart_item_data);
@@ -259,21 +262,29 @@ add_action('plugins_loaded', function () {
 		}
 
 		foreach ($cart->get_cart() as $cart_item_key => &$cart_item) {
+
+			// ✅ If JS sent total_price, use it as final price directly
+			if (!empty($cart_item['total_price'])) {
+				$cart_item['data']->set_price(floatval($cart_item['total_price']));
+				continue; // don't add extras again
+			}
+
+			// ✅ otherwise calculate extras manually
+			$base_price = floatval($cart_item['data']->get_price());
+			$extra_price_total = 0;
+
 			if (!empty($cart_item['extra_ingredients']) && is_array($cart_item['extra_ingredients'])) {
-				$extra_price_total = 0;
 				foreach ($cart_item['extra_ingredients'] as $extra) {
 					if (!empty($extra['price'])) {
 						$extra_price_total += floatval($extra['price']);
 					}
 				}
-
-				if ($extra_price_total > 0) {
-					$base_price = floatval($cart_item['data']->get_price());
-					$cart_item['data']->set_price($base_price + $extra_price_total);
-				}
 			}
+
+			$cart_item['data']->set_price($base_price + $extra_price_total);
 		}
 	});
+
 
 
 

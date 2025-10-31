@@ -1,18 +1,18 @@
-(function($){
+(function ($) {
     // Handle Add to Cart
-    $(document).on('click', '.ecpw-addcart-btn', function(){
+    $(document).on('click', '.ecpw-addcart-btn', function () {
         var $product = $(this).closest('.ecpw-product-box');
-        var product_id = $product.data('product-id') || 
-                         $product.attr('data-product-id') || 
-                         $product.find('input[name=add-to-cart],input[name=product_id]').val();
+        var product_id = $product.data('product-id') ||
+            $product.attr('data-product-id') ||
+            $product.find('input[name=add-to-cart],input[name=product_id]').val();
 
-        var globalQty = parseInt($product.find('.ecpw-global-qty input[type=number]').val()||1,10);
+        var globalQty = parseInt($product.find('.ecpw-global-qty input[type=number]').val() || 1, 10);
         var flavors = {};
 
-        $product.find('.ecpw-flavor-list .ecpw-flavor-row').each(function(){
+        $product.find('.ecpw-flavor-list .ecpw-flavor-row').each(function () {
             var $row = $(this);
             var name = $row.find('.ecpw-flavor-name').text().trim();
-            var qty = parseInt($row.find('input[type=number]').val()||0,10);
+            var qty = parseInt($row.find('input[type=number]').val() || 0, 10);
             if (name && qty > 0) flavors[name] = qty;
         });
 
@@ -21,7 +21,7 @@
             return;
         }
 
-        var totalSelected = Object.values(flavors).reduce((t,v)=>t+v,0);
+        var totalSelected = Object.values(flavors).reduce((t, v) => t + v, 0);
         if (totalSelected < 1) {
             alert('Please select at least one flavor.');
             return;
@@ -38,19 +38,23 @@
         $btn.prop('disabled', true).text('Ajout…');
 
         let extraIngredientsArray = [];
+        var totalPriceText = $product.find('.ecpw-product-price').text().trim();
 
-        $product.find('.ecpw-flavor-row').each(function(){
+        // ✅ Extract numeric value (convert "13.90 €" → 13.90)
+        var totalPrice = parseFloat(totalPriceText.replace(/[^\d.,]/g, '').replace(',', '.'));
+
+        $product.find('.ecpw-flavor-row').each(function () {
             const $ctrl = $(this).find('.ecpw-flavor-controls');
             const preset = parseInt($ctrl.data('preset') || 0, 10);
             const qty = parseInt($ctrl.find('input[type=number]').val() || 0, 10);
             const name = $(this).find('.ecpw-flavor-name').text().trim();
 
-        if (qty > preset) {
-            const extraPrice = parseFloat($ctrl.data('extra-price') || 0); 
-            for (let i = 0; i < (qty - preset); i++) {
-                extraIngredientsArray.push({ name, price: extraPrice });
+            if (qty > preset) {
+                const extraPrice = parseFloat($ctrl.data('extra-price') || 0);
+                for (let i = 0; i < (qty - preset); i++) {
+                    extraIngredientsArray.push({ name, price: extraPrice });
+                }
             }
-        }
         });
 
 
@@ -63,34 +67,35 @@
                 product_id: product_id,
                 quantity: globalQty,
                 dev_chouchou_flavors: flavors,
+                total_price: totalPrice,
                 extra_ingredients: JSON.stringify(extraIngredientsArray)
             },
-            success: function(json) {
+            success: function (json) {
                 function updateFragments(fragments) {
-                    $.each(fragments, function(sel, html){
+                    $.each(fragments, function (sel, html) {
                         var $el = $(sel);
-                        if($el.length) $el.html(html);
+                        if ($el.length) $el.html(html);
                     });
                 }
 
-                if(json && json.fragments) {
+                if (json && json.fragments) {
                     updateFragments(json.fragments);
                     $btn.text('Ajouté ✓');
                     const toggleBtn = document.querySelector('#elementor-menu-cart__toggle_button');
                     if (toggleBtn) toggleBtn.click();
-                    setTimeout(function(){ $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
-                } else if(json && json.data && json.data.fragments) {
+                    setTimeout(function () { $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
+                } else if (json && json.data && json.data.fragments) {
                     updateFragments(json.data.fragments);
                     $btn.text('Ajouté ✓');
                     const toggleBtn = document.querySelector('#elementor-menu-cart__toggle_button');
                     if (toggleBtn) toggleBtn.click();
-                    setTimeout(function(){ $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
+                    setTimeout(function () { $btn.text('Ajouter au panier').prop('disabled', false); }, 1200);
                 } else {
                     $btn.prop('disabled', false).text('Ajouter au panier');
                     alert((json && json.data && json.data.message) || (json && json.message) || 'Error');
                 }
             },
-            error: function(){
+            error: function () {
                 $btn.prop('disabled', false).text('Ajouter au panier');
                 alert('Erreur serveur, veuillez réessayer.');
             }
@@ -98,15 +103,15 @@
     });
 
     // ✅ Increment/decrement local flavor qty with per-product limit
-    $(document).on('click', '.ecpw-flavor-row .qty-plus', function(){
+    $(document).on('click', '.ecpw-flavor-row .qty-plus', function () {
         var $row = $(this).closest('.ecpw-flavor-row');
         var $product = $(this).closest('.ecpw-product-box');
         var $input = $row.find('.ecpw-flavor-controls input[type=number]');
-        var current = parseInt($input.val()||0,10);
+        var current = parseInt($input.val() || 0, 10);
         var maxAllowed = parseInt($product.data('max-flavors')) || 0;
         // Calculate total selected flavors in this product box
         var totalSelected = 0;
-        $product.find('.ecpw-flavor-controls input[type=number]').each(function(){
+        $product.find('.ecpw-flavor-controls input[type=number]').each(function () {
             totalSelected += parseInt($(this).val() || 0, 10);
         });
 
@@ -120,7 +125,7 @@
         updateFlavorButtons($product);
     });
 
-    $(document).on('click', '.ecpw-flavor-row .qty-minus', function(e){
+    $(document).on('click', '.ecpw-flavor-row .qty-minus', function (e) {
         const $ctrl = $(this).closest('.ecpw-flavor-controls');
         const preset = parseInt($ctrl.data('preset') || 0, 10);
         const $input = $ctrl.find('input[type=number]');
@@ -141,15 +146,15 @@
 
 
     // ✅ Increment/decrement global box qty
-    $(document).on('click', '.ecpw-global-qty .qty-plus', function(){
+    $(document).on('click', '.ecpw-global-qty .qty-plus', function () {
         var $input = $(this).siblings('input[type=number]');
-        $input.val(parseInt($input.val()||1,10)+1);
+        $input.val(parseInt($input.val() || 1, 10) + 1);
     });
 
-    $(document).on('click', '.ecpw-global-qty .qty-minus', function(){
+    $(document).on('click', '.ecpw-global-qty .qty-minus', function () {
         var $input = $(this).siblings('input[type=number]');
-        var v = parseInt($input.val()||1,10);
-        if(v>1) $input.val(v-1);
+        var v = parseInt($input.val() || 1, 10);
+        if (v > 1) $input.val(v - 1);
     });
 
     // ✅ Auto-disable + buttons when limit is hit
@@ -160,7 +165,7 @@
         }
 
         var totalSelected = 0;
-        $product.find('.ecpw-flavor-controls input[type=number]').each(function(){
+        $product.find('.ecpw-flavor-controls input[type=number]').each(function () {
             totalSelected += parseInt($(this).val() || 0, 10);
         });
 
@@ -175,13 +180,13 @@
         }
 
         // Debug each button state
-        $product.find('.ecpw-flavor-row').each(function(index){
+        $product.find('.ecpw-flavor-row').each(function (index) {
             const $btn = $(this).find('.qty-plus');
         });
     }
 
     // ✅ Load more functionality
-    $(document).on('click', '.ecpw-load-more-flavors', function(){
+    $(document).on('click', '.ecpw-load-more-flavors', function () {
         const $btn = $(this);
         const $list = $btn.closest('.ecpw-flavor-list');
         $list.find('.ecpw-flavor-column:hidden').slice(0, 100).slideDown();
@@ -189,7 +194,7 @@
     });
 
     // ✅ Improved counter logic
-    function updateFlavorCounter($product){
+    function updateFlavorCounter($product) {
         const $list = $product.find('.ecpw-flavor-list');
         const $inputs = $list.find('.ecpw-flavor-controls input[type=number]');
         const totalAvailable = parseInt($product.data('max-flavors')) || 0;
@@ -199,7 +204,7 @@
         let totalSelected = 0;
         let extraFlavors = 0;
 
-        $inputs.each(function(){
+        $inputs.each(function () {
             const $input = $(this);
             const preset = parseInt($input.closest('.ecpw-flavor-controls').data('preset') || 0, 10);
             const val = parseInt($input.val() || 0, 10);
@@ -217,7 +222,7 @@
         // ✅ Calculate new price with +2 per extra
         let extraCost = 0;
 
-        $inputs.each(function(){
+        $inputs.each(function () {
             const $input = $(this);
             const $ctrl = $input.closest('.ecpw-flavor-controls');
             const preset = parseInt($ctrl.data('preset') || 0, 10);
@@ -240,14 +245,14 @@
     }
 
     // ✅ Update counter when values change
-    $(document).on('change', '.ecpw-flavor-list input[type=number]', function(){
+    $(document).on('change', '.ecpw-flavor-list input[type=number]', function () {
         const $product = $(this).closest('.ecpw-product-box');
         updateFlavorCounter($product);
     });
 
     // ✅ Initialize counters on page load
-    $(function(){
-        $('.ecpw-product-box').each(function(){
+    $(function () {
+        $('.ecpw-product-box').each(function () {
             updateFlavorCounter($(this));
         });
     });
