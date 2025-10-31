@@ -241,11 +241,21 @@ add_action('plugins_loaded', function () {
 		}
 
 		foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-			if (isset($cart_item['extra_count']) && $cart_item['extra_count'] > 0) {
-				$extra_price = 2 * intval($cart_item['extra_count']);
-				$base_price = $cart_item['data']->get_price();
-				$cart_item['data']->set_price($base_price + $extra_price);
+			if (!empty($cart_item['extra_ingredients']) && is_array($cart_item['extra_ingredients'])) {
+				$extra_price_total = 0;
+
+				foreach ($cart_item['extra_ingredients'] as $extra) {
+					if (!empty($extra['price'])) {
+						$extra_price_total += floatval($extra['price']);
+					}
+				}
+
+				if ($extra_price_total > 0) {
+					$base_price = floatval($cart_item['data']->get_price());
+					$cart_item['data']->set_price($base_price + $extra_price_total);
+				}
 			}
+
 		}
 	});
 

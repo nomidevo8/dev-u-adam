@@ -45,11 +45,13 @@
             const qty = parseInt($ctrl.find('input[type=number]').val() || 0, 10);
             const name = $(this).find('.ecpw-flavor-name').text().trim();
 
-            if (qty > preset) {
-                for (let i = 0; i < (qty - preset); i++) {
-                    extraIngredientsArray.push(name);
-                }
+        if (qty > preset) {
+            const extraPrice = parseFloat($ctrl.data('price') || 0); 
+            for (let i = 0; i < (qty - preset); i++) {
+                extraIngredientsArray.push({ name, price: extraPrice });
             }
+        }
+
         });
 
 
