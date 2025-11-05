@@ -226,11 +226,19 @@ add_action('plugins_loaded', function () {
 				$added = WC()->cart->add_to_cart($product_id, $quantity, 0, [], $cart_item_data);
 			}
 
-			if (!$added) {
-				('❌ add_to_cart() failed');
-				wp_send_json_error(['message' => __('Could not add to cart', 'woocommerce')]);
-			}
 
+			if (!$added) {
+
+				// 🧠 Capture WooCommerce errors
+				$errors = wc_get_notices('error');
+				$error_message = !empty($errors)
+					? html_entity_decode(strip_tags(implode(' ', wp_list_pluck($errors, 'notice'))))
+					: __('Could not add to cart. Please try again.', 'woocommerce');
+
+				wc_clear_notices();
+
+				wp_send_json_error(['message' => $error_message]);
+			}
 
 			WC()->cart->calculate_totals();
 
