@@ -80,21 +80,41 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
             foreach ($cart as $cart_item_key => $cart_item) {
                 $product = $cart_item['data'];
                 $quantity = intval($cart_item['quantity']);
-                $price_html = wc_price( $cart_item['line_total'] );
-                
+                $price_html = wc_price($cart_item['line_total']);
                 $image = $product->get_image('woocommerce_thumbnail');
                 $name = $product->get_name();
 
-				// Build list with selected flavors only (same list layout)
-				$ingredients_list = [];
-				if (!empty($cart_item['dev_chouchou_flavors']) && is_array($cart_item['dev_chouchou_flavors'])) {
-					foreach ($cart_item['dev_chouchou_flavors'] as $fname => $qty) {
-						$qty = intval($qty);
-						if ($qty > 0) {
-							$ingredients_list[] = sprintf(' %d - %s ', $qty, esc_html($fname));
-						}
-					}
-				}
+                // 🧩 Collect ingredients or selected options
+                $details_list = [];
+
+                // 1️⃣ If this is a Chouchou Box
+                if (!empty($cart_item['dev_chouchou_flavors']) && is_array($cart_item['dev_chouchou_flavors'])) {
+                    foreach ($cart_item['dev_chouchou_flavors'] as $flavor_name => $flavor_qty) {
+                        $flavor_qty = intval($flavor_qty);
+                        if ($flavor_qty > 0) {
+                            $details_list[] = sprintf('%d × %s', $flavor_qty, esc_html($flavor_name));
+                        }
+                    }
+                }
+
+                // 2️⃣ Else, if this is a normal variable product
+               elseif (!empty($cart_item['flavors']) && is_array($cart_item['flavors'])) {
+                    foreach ($cart_item['flavors'] as $attr_key => $attr_val) {
+                        // Extract attribute name correctly
+                        $attr_name = str_replace('attribute_', '', $attr_key);
+
+                        // Add prefix if it's a taxonomy attribute (starts with "pa_")
+                        if (taxonomy_exists('pa_' . $attr_name)) {
+                            $label = wc_attribute_label('pa_' . $attr_name);
+                        } else {
+                            // Fallback to human-readable label
+                            $label = ucwords(str_replace('-', ' ', $attr_name));
+                        }
+
+                        $details_list[] = sprintf('%s: %s', esc_html($label), esc_html($attr_val));
+                    }
+                }
+
 
                 ?>
                 <div class="ecpw-item">
@@ -103,10 +123,10 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
                         <div class="ecpw-main">
                             <h3 class="ecpw-title"><?php echo esc_html($name); ?></h3>
 
-                            <?php if (!empty($ingredients_list)): ?>
+                            <?php if (!empty($details_list)): ?>
                                 <ul class="ecpw-ingredients">
-                                    <?php foreach ($ingredients_list as $ing): ?>
-                                        <li><?php echo wp_kses_post($ing); ?></li>
+                                    <?php foreach ($details_list as $item): ?>
+                                        <li><?php echo wp_kses_post($item); ?></li>
                                     <?php endforeach; ?>
                                 </ul>
                             <?php endif; ?>
@@ -123,6 +143,7 @@ if (!class_exists('ECPW\\Cart_Products_Widget')) {
                 </div>
                 <?php
             }
+
 
             echo '</div>'; // ecpw-list
         }
