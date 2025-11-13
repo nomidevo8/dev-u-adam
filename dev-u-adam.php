@@ -153,7 +153,7 @@ add_action('plugins_loaded', function () {
 			}
 
 			$product_id = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
-			$quantity   = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
+			$quantity = isset($_POST['quantity']) ? max(1, intval($_POST['quantity'])) : 1;
 
 
 			if (!$product_id) {
@@ -207,7 +207,7 @@ add_action('plugins_loaded', function () {
 				$cart_item_data['flavors'] = $attributes;
 			}
 
-		// ✅ store total price from JS
+			// ✅ store total price from JS
 			if (!empty($_POST['total_price'])) {
 				$cart_item_data['total_price'] = floatval($_POST['total_price']);
 			}
@@ -294,6 +294,39 @@ add_action('plugins_loaded', function () {
 	});
 
 
+	add_filter('woocommerce_email_headers', 'add_bcc_to_all_customer_emails', 10, 3);
+
+	function add_bcc_to_all_customer_emails($headers, $email_id, $order)
+	{
+		// Your client/admin email address
+		$client_email = 'commandes@chouchou-marseille.fr';
+
+		// List of all WooCommerce customer-related emails
+		$customer_emails = [
+			'customer_new_account',
+			'customer_reset_password',
+			'customer_processing_order',
+			'customer_completed_order',
+			'customer_on_hold_order',
+			'customer_refunded_order',
+			'customer_partially_refunded_order',
+			'customer_invoice',
+			'customer_note',
+			'customer_payment_retry',
+			'customer_invoice_paid',
+			'customer_new_account_activation',
+			'customer_order_confirmation',
+			'customer_pending_order',
+			'customer_failed_order',
+		];
+
+		// Add BCC for any of these emails
+		if (in_array($email_id, $customer_emails)) {
+			$headers .= 'Bcc: ' . $client_email . "\r\n";
+		}
+
+		return $headers;
+	}
 
 
 });
